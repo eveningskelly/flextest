@@ -1,4 +1,3 @@
-
 import streamlit as st
 from PIL import Image
 
@@ -96,18 +95,59 @@ if st.button("Analyze"):
     estimated_total_life = 20000  # You can replace this later with your prediction
 
     remaining_life = max(estimated_total_life - hours_in_use, 0)
+    threshold_pct = 0.75  # 75% point in red
+    usage_pct = (hours_in_use / estimated_total_life) * 100
+    threshold_pos = threshold_pct * 100
 
-    st.markdown("**Remaining Useful Life**")
+    # For deposits, using ΔE as a placeholder level
+    deposit_level = delta_e
+    deposit_pct = min(deposit_level, 100)
 
-    st.slider(
-        label="",
-        min_value=0,
-        max_value=int(estimated_total_life),
-        value=int(hours_in_use),
-        step=1,
-        disabled=True,
-        help=f"{remaining_life} hours remaining out of {estimated_total_life} total"
-    )
+    # Layout two “hot-dog” bars side by side
+    life_col, dep_col = st.columns(2)
 
-    st.caption(f"{remaining_life} hours remaining out of {estimated_total_life}")
+    with life_col:
+        st.markdown(f"""
+            <div style="
+                width: 100%; height: 20px;
+                background: linear-gradient(to right, green 0%, yellow 50%, red 100%);
+                border-radius: 10px; position: relative;
+                margin-bottom: 4px;
+            ">
+                <div style="
+                    position: absolute; left: 0;
+                    width: {usage_pct}%; height: 20px;
+                    background: rgba(0,0,0,0.3);
+                    border-radius: 10px;
+                "></div>
+                <div style="
+                    position: absolute; left: {threshold_pos}%;
+                    width: 2px; height: 20px;
+                    background: red;
+                "></div>
+            </div>
+        """, unsafe_allow_html=True)
+        st.markdown(f"This oil has **{remaining_life:,} hours** left of useful life.")
 
+    with dep_col:
+        st.markdown(f"""
+            <div style="
+                width: 100%; height: 20px;
+                background: linear-gradient(to right, green 0%, yellow 50%, red 100%);
+                border-radius: 10px; position: relative;
+                margin-bottom: 4px;
+            ">
+                <div style="
+                    position: absolute; left: 0;
+                    width: {deposit_pct}%; height: 20px;
+                    background: rgba(0,0,0,0.3);
+                    border-radius: 10px;
+                "></div>
+                <div style="
+                    position: absolute; left: {threshold_pos}%;
+                    width: 2px; height: 20px;
+                    background: red;
+                "></div>
+            </div>
+        """, unsafe_allow_html=True)
+        st.markdown(f"This oil has a **{deposit_level}%** level of deposits.")
