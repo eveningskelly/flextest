@@ -8,53 +8,55 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS to match Fluitec branding and force white background
+# Custom CSS: darker background, dark-blue text, larger logos, title moved up
 st.markdown("""
     <style>
-        /* Override Streamlit dark mode background */
+        /* Darker page background and text color override */
         [data-testid="stAppViewContainer"],
         [data-testid="stBlock"],
         [data-testid="stSidebar"],
         [data-testid="stHeader"],
         [data-testid="stToolbar"] {
-            background-color: #ffffff !important;
+            background-color: #e8e8e8 !important;
+            color: #003366 !important;
         }
-        /* Page text and controls */
-        body, .main {
-            background-color: #ffffff !important;
+        /* Ensure body text is dark blue */
+        body, .main, .css-1d391kg, .css-1dp5vir, .css-1v3fvcr {
+            color: #003366 !important;
         }
+        /* Tweak headings */
         h1 {
             color: #003366 !important;
-            font-weight: 500 !important;
-            text-align: center !important;
-            font-size: 48px !important;
+            margin-top: -20px !important;
+            margin-bottom: 10px !important;
             font-family: 'Arial Narrow', sans-serif !important;
-            text-transform: uppercase !important;
-            letter-spacing: 2px !important;
         }
+        /* Style input labels */
         label, .stTextInput label, .stSelectbox label, .stNumberInput label {
             color: #003366 !important;
             font-weight: 500 !important;
             font-family: 'Arial Narrow', sans-serif !important;
             text-transform: uppercase !important;
         }
+        /* Green accent on input boxes */
         .stSelectbox > div, .stTextInput > div, .stNumberInput > div {
             border-color: #00A651 !important;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# Load and display logos (made a bit larger)
+# Load logos
 fluitec_logo = Image.open("fluitec_logo.png")
 flex_logo   = Image.open("flexlogo.png")
 
-logo_col1, logo_col2, logo_col3 = st.columns([1, 8, 1])
+# Display logos larger and title moved up
+logo_col1, logo_col2, logo_col3 = st.columns([1, 6, 1])
 with logo_col1:
-    st.image(fluitec_logo, width=250)
+    st.image(fluitec_logo, width=300)
 with logo_col3:
-    st.image(flex_logo, width=250)
+    st.image(flex_logo, width=300)
 
-# Title
+# Page title
 st.markdown("<h1>FLEX REPORT</h1>", unsafe_allow_html=True)
 
 # Oil dropdown (unique names only)
@@ -92,21 +94,21 @@ st.markdown("""---
 *Results section coming soon.*
 """)
 
-# Analyze button
+# Analyze button and results
 if st.button("Analyze"):
     st.markdown("---")
     st.subheader("Results")
 
-    # Placeholder for model output
-    estimated_total_life = 20000  # replace with your actual model output
+    # Placeholder model output
+    estimated_total_life = 20000
     remaining_life = max(estimated_total_life - hours_in_use, 0)
 
     # Percentages for rendering
     usage_pct     = (hours_in_use / estimated_total_life) * 100
-    threshold_pct = 75  # marker at 75%
+    threshold_pct = 75  # 75% marker
     deposit_pct   = min(delta_e, 100)
 
-    # Draw two side-by-side "hot-dog" bars
+    # Two hot-dog bars side by side
     life_col, dep_col = st.columns(2)
 
     with life_col:
