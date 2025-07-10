@@ -3,19 +3,19 @@ from PIL import Image
 
 # Page config
 st.set_page_config(
-    page_title="Flex Analysis Report",
+    page_title="FLEX REPORT",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS
+# Custom CSS to match Fluitec branding
 st.markdown("""
     <style>
         body {
-            background-color: #f5f5f5;
+            background-color: #ffffff;
         }
         .main {
-            background-color: #f5f5f5;
+            background-color: #ffffff;
         }
         h1 {
             color: #003366;
@@ -33,17 +33,23 @@ st.markdown("""
             text-transform: uppercase;
         }
         .stSelectbox > div, .stTextInput > div, .stNumberInput > div {
-            border-color: #006B5F;
+            border-color: #00A651;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# Load and display Fluitec logo
-logo = Image.open("fluitec_logo.png")
-st.image(logo, width=200)
+# Load and display logos
+fluitec_logo = Image.open("fluitec_logo.png")
+flex_logo   = Image.open("flexlogo.png")
+
+logo_col1, logo_col2, logo_col3 = st.columns([1, 8, 1])
+with logo_col1:
+    st.image(fluitec_logo, width=200)
+with logo_col3:
+    st.image(flex_logo, width=200)
 
 # Title
-st.markdown("<h1>Flex Analysis Report</h1>", unsafe_allow_html=True)
+st.markdown("<h1>FLEX REPORT</h1>", unsafe_allow_html=True)
 
 # Oil dropdown (unique names only)
 oil_names = sorted(list(set([
@@ -58,22 +64,17 @@ oil_names = sorted(list(set([
 
 # Input fields
 col1, col2, col3, col4, col5 = st.columns(5)
-
 with col1:
-    rpvot = st.number_input("RPVOT (%)", min_value=0.0, max_value=200.0)
-    aminic = st.number_input("% Aminic", min_value=0.0, max_value=100.0)
-    phenolic = st.number_input("% Phenolic", min_value=0.0, max_value=100.0)
-    delta_e = st.number_input("MPC ΔE", min_value=0.0, max_value=100.0)
-
+    rpvot     = st.number_input("RPVOT (%)",     min_value=0.0, max_value=200.0)
+    aminic    = st.number_input("% Aminic",      min_value=0.0, max_value=100.0)
+    phenolic  = st.number_input("% Phenolic",    min_value=0.0, max_value=100.0)
+    delta_e   = st.number_input("MPC ΔE",       min_value=0.0, max_value=100.0)
 with col2:
     selected_oil = st.selectbox("Oil Type", oil_names)
-
 with col3:
     decon_added = st.selectbox("DECON Added", ["Yes", "No"])
-
 with col4:
     hours_in_use = st.number_input("Hours in Use", min_value=0)
-
 with col5:
     application = st.selectbox("Application", [
         "Large Gas Turbine", "Small Gas Turbine",
@@ -81,8 +82,7 @@ with col5:
     ])
 
 # Placeholder for future results section
-st.markdown("""
----
+st.markdown("""---
 *Results section coming soon.*
 """)
 
@@ -91,19 +91,16 @@ if st.button("Analyze"):
     st.markdown("---")
     st.subheader("Results")
 
-    # Placeholder for total estimated life – this will be replaced by actual model later
-    estimated_total_life = 20000  # You can replace this later with your prediction
-
+    # Placeholder for model output
+    estimated_total_life = 20000  # replace with your actual model
     remaining_life = max(estimated_total_life - hours_in_use, 0)
-    threshold_pct = 0.75  # 75% point in red
-    usage_pct = (hours_in_use / estimated_total_life) * 100
-    threshold_pos = threshold_pct * 100
 
-    # For deposits, using ΔE as a placeholder level
-    deposit_level = delta_e
-    deposit_pct = min(deposit_level, 100)
+    # Percentages for rendering
+    usage_pct     = (hours_in_use / estimated_total_life) * 100
+    threshold_pct = 75  # marker at 75%
+    deposit_pct   = min(delta_e, 100)
 
-    # Layout two “hot-dog” bars side by side
+    # Draw two side-by-side "hot-dog" bars
     life_col, dep_col = st.columns(2)
 
     with life_col:
@@ -111,8 +108,7 @@ if st.button("Analyze"):
             <div style="
                 width: 100%; height: 20px;
                 background: linear-gradient(to right, green 0%, yellow 50%, red 100%);
-                border-radius: 10px; position: relative;
-                margin-bottom: 4px;
+                border-radius: 10px; position: relative; margin-bottom: 4px;
             ">
                 <div style="
                     position: absolute; left: 0;
@@ -121,7 +117,7 @@ if st.button("Analyze"):
                     border-radius: 10px;
                 "></div>
                 <div style="
-                    position: absolute; left: {threshold_pos}%;
+                    position: absolute; left: {threshold_pct}%;
                     width: 2px; height: 20px;
                     background: red;
                 "></div>
@@ -134,8 +130,7 @@ if st.button("Analyze"):
             <div style="
                 width: 100%; height: 20px;
                 background: linear-gradient(to right, green 0%, yellow 50%, red 100%);
-                border-radius: 10px; position: relative;
-                margin-bottom: 4px;
+                border-radius: 10px; position: relative; margin-bottom: 4px;
             ">
                 <div style="
                     position: absolute; left: 0;
@@ -144,10 +139,10 @@ if st.button("Analyze"):
                     border-radius: 10px;
                 "></div>
                 <div style="
-                    position: absolute; left: {threshold_pos}%;
+                    position: absolute; left: {threshold_pct}%;
                     width: 2px; height: 20px;
                     background: red;
                 "></div>
             </div>
         """, unsafe_allow_html=True)
-        st.markdown(f"This oil has a **{deposit_level}%** level of deposits.")
+        st.markdown(f"This oil has a **{delta_e}%** level of deposits.")
