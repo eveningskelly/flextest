@@ -8,45 +8,51 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS to match Fluitec branding
+# Custom CSS to match Fluitec branding and force white background
 st.markdown("""
     <style>
-        body {
-            background-color: #ffffff;
+        /* Override Streamlit dark mode background */
+        [data-testid="stAppViewContainer"],
+        [data-testid="stBlock"],
+        [data-testid="stSidebar"],
+        [data-testid="stHeader"],
+        [data-testid="stToolbar"] {
+            background-color: #ffffff !important;
         }
-        .main {
-            background-color: #ffffff;
+        /* Page text and controls */
+        body, .main {
+            background-color: #ffffff !important;
         }
         h1 {
-            color: #003366;
-            font-weight: 500;
-            text-align: center;
-            font-size: 48px;
-            font-family: 'Arial Narrow', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+            color: #003366 !important;
+            font-weight: 500 !important;
+            text-align: center !important;
+            font-size: 48px !important;
+            font-family: 'Arial Narrow', sans-serif !important;
+            text-transform: uppercase !important;
+            letter-spacing: 2px !important;
         }
         label, .stTextInput label, .stSelectbox label, .stNumberInput label {
             color: #003366 !important;
-            font-weight: 500;
-            font-family: 'Arial Narrow', sans-serif;
-            text-transform: uppercase;
+            font-weight: 500 !important;
+            font-family: 'Arial Narrow', sans-serif !important;
+            text-transform: uppercase !important;
         }
         .stSelectbox > div, .stTextInput > div, .stNumberInput > div {
-            border-color: #00A651;
+            border-color: #00A651 !important;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# Load and display logos
+# Load and display logos (made a bit larger)
 fluitec_logo = Image.open("fluitec_logo.png")
 flex_logo   = Image.open("flexlogo.png")
 
 logo_col1, logo_col2, logo_col3 = st.columns([1, 8, 1])
 with logo_col1:
-    st.image(fluitec_logo, width=200)
+    st.image(fluitec_logo, width=250)
 with logo_col3:
-    st.image(flex_logo, width=200)
+    st.image(flex_logo, width=250)
 
 # Title
 st.markdown("<h1>FLEX REPORT</h1>", unsafe_allow_html=True)
@@ -65,10 +71,10 @@ oil_names = sorted(list(set([
 # Input fields
 col1, col2, col3, col4, col5 = st.columns(5)
 with col1:
-    rpvot     = st.number_input("RPVOT (%)",     min_value=0.0, max_value=200.0)
-    aminic    = st.number_input("% Aminic",      min_value=0.0, max_value=100.0)
-    phenolic  = st.number_input("% Phenolic",    min_value=0.0, max_value=100.0)
-    delta_e   = st.number_input("MPC ΔE",       min_value=0.0, max_value=100.0)
+    rpvot       = st.number_input("RPVOT (%)",     min_value=0.0, max_value=200.0)
+    aminic      = st.number_input("% Aminic",      min_value=0.0, max_value=100.0)
+    phenolic    = st.number_input("% Phenolic",    min_value=0.0, max_value=100.0)
+    delta_e     = st.number_input("MPC ΔE",        min_value=0.0, max_value=100.0)
 with col2:
     selected_oil = st.selectbox("Oil Type", oil_names)
 with col3:
@@ -92,7 +98,7 @@ if st.button("Analyze"):
     st.subheader("Results")
 
     # Placeholder for model output
-    estimated_total_life = 20000  # replace with your actual model
+    estimated_total_life = 20000  # replace with your actual model output
     remaining_life = max(estimated_total_life - hours_in_use, 0)
 
     # Percentages for rendering
