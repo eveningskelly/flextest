@@ -2,66 +2,51 @@ import streamlit as st
 from PIL import Image
 import math
 
-# Page config
+# --- PAGE CONFIG ---
 st.set_page_config(
-    page_title="FLEX REPORT",
+    page_title="Flex Analysis Report",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS: darker background, dark-blue text, green accents
+# --- CUSTOM CSS ---
 st.markdown("""
     <style>
-        /* Background and text */
-        [data-testid="stAppViewContainer"],
-        [data-testid="stBlock"],
-        [data-testid="stSidebar"],
-        [data-testid="stHeader"],
-        [data-testid="stToolbar"] {
-            background-color: #e8e8e8 !important;
-            color: #003366 !important;
+        body {
+            background-color: #f5f5f5;
         }
-        body, .main {
-            background-color: #e8e8e8 !important;
-            color: #003366 !important;
+        .main {
+            background-color: #f5f5f5;
         }
         h1 {
-            color: #003366 !important;
-            margin-top: -20px !important;
-            margin-bottom: 10px !important;
-            font-family: 'Arial Narrow', sans-serif !important;
-            text-align: center !important;
-            font-size: 48px !important;
-            text-transform: uppercase !important;
-            letter-spacing: 2px !important;
+            color: #003366;
+            font-weight: 500;
+            text-align: center;
+            font-size: 48px;
+            font-family: 'Arial Narrow', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
         label, .stTextInput label, .stSelectbox label, .stNumberInput label {
             color: #003366 !important;
-            font-weight: 500 !important;
-            font-family: 'Arial Narrow', sans-serif !important;
-            text-transform: uppercase !important;
+            font-weight: 500;
+            font-family: 'Arial Narrow', sans-serif;
+            text-transform: uppercase;
         }
         .stSelectbox > div, .stTextInput > div, .stNumberInput > div {
-            border-color: #00A651 !important;
+            border-color: #006B5F;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# Load logos
-fluitec_logo = Image.open("fluitec_logo.png")
-flex_logo    = Image.open("flexlogo.png")
+# --- LOAD LOGO ---
+logo = Image.open("fluitec_logo.png")
+st.image(logo, width=200)
 
-# Display logos
-logo_col1, logo_col2, logo_col3 = st.columns([1, 6, 1])
-with logo_col1:
-    st.image(fluitec_logo, width=300)
-with logo_col3:
-    st.image(flex_logo, width=300)
+# --- TITLE ---
+st.markdown("<h1>Flex Analysis Report</h1>", unsafe_allow_html=True)
 
-# Title
-st.markdown("<h1>FLEX REPORT</h1>", unsafe_allow_html=True)
-
-# Oil dropdown options
+# --- OIL NAMES ---
 oil_names = sorted(list(set([
     "Kluber Summit SH 32", "Castrol SN 46", "Total Preslia EVO 32", "Chevron GST Premium XL32 (2)",
     "Total Preslia GT", "Chevron GST 32", "Chevron GST Advantage EP 32", "Mobil DTE 732",
@@ -72,7 +57,31 @@ oil_names = sorted(list(set([
     "Repsol Turbo Aries Plus"
 ])))
 
-# Per-oil formula dictionaries
+# --- USER INPUT FIELDS ---
+col1, col2, col3, col4, col5 = st.columns(5)
+
+with col1:
+    rpvot = st.number_input("RPVOT (%)", min_value=0.0, max_value=200.0)
+    aminic = st.number_input("% Aminic", min_value=0.0, max_value=100.0)
+    phenolic = st.number_input("% Phenolic", min_value=0.0, max_value=100.0)
+    delta_e = st.number_input("MPC ΔE", min_value=0.0, max_value=100.0)
+
+with col2:
+    selected_oil = st.selectbox("Oil Type", oil_names)
+
+with col3:
+    decon_added = st.selectbox("DECON Added", ["Yes", "No"])
+
+with col4:
+    hours_in_use = st.number_input("Hours in Use", min_value=0)
+
+with col5:
+    application = st.selectbox("Application", [
+        "Large Gas Turbine", "Small Gas Turbine",
+        "Large Steam Turbine", "Small Steam Turbine"
+    ])
+
+# --- FORMULAS ---
 rpvot_funcs = {
     "Castrol SN 46": lambda h: max(100.79786 * math.exp(-0.00001996 * h), 0),
     "Castrol XEP 46": lambda h: max(87.88136 * math.exp(-0.00075575 * h), 0),
@@ -130,7 +139,6 @@ aminic_funcs = {
     "Turboflo XL": lambda h: max(99.41411 * math.exp(-0.00017067 * h), 0),
 }
 
-# Solver
 def find_remaining_life(h0, r_fn, a_fn):
     def avg_pct(h):
         r = r_fn(h)
@@ -154,14 +162,7 @@ def find_remaining_life(h0, r_fn, a_fn):
             high = mid
     return high - h0
 
-# Inputs
-col1, col2 = st.columns(2)
-with col1:
-    selected_oil = st.selectbox("Oil Type", oil_names)
-with col2:
-    hours_in_use = st.number_input("Hours in Use", min_value=0)
-
-# Analyze
+# --- ANALYZE BUTTON ---
 if st.button("Analyze"):
     st.markdown("---")
     st.subheader("Results")
@@ -175,17 +176,13 @@ if st.button("Analyze"):
     remaining = find_remaining_life(hours_in_use, r_fn, a_fn)
     remaining = remaining if remaining is not None else 0
     total = hours_in_use + remaining
-
     usage_pct = (hours_in_use / total) * 100 if total else 100
 
-    col_a, col_b = st.columns(2)
-    with col_a:
-        st.markdown(f"""
-            <div style="width:100%;height:20px;background:linear-gradient(to right, green, yellow, red);border-radius:10px;position:relative;">
-                <div style="position:absolute;left:0;width:{usage_pct}%;height:20px;background:rgba(0,0,0,0.3);border-radius:10px;"></div>
-                <div style="position:absolute;left:100%;width:2px;height:20px;background:red;"></div>
-            </div>
-        """, unsafe_allow_html=True)
-        st.markdown(f"This oil has **{remaining:.0f} hours** left of useful life.")
-    with col_b:
-        st.markdown(f"RPVOT: **{r_val:.1f}%**, Aminic: **{a_val:.1f}%**")
+    # --- HOT DOG BAR ---
+    st.markdown(f"""
+        <div style="width:100%;height:20px;background:linear-gradient(to right, green, yellow, red);border-radius:10px;position:relative;">
+            <div style="position:absolute;left:0;width:{usage_pct:.2f}%;height:20px;background:rgba(0,0,0,0.3);border-radius:10px;"></div>
+            <div style="position:absolute;left:100%;width:2px;height:20px;background:red;"></div>
+        </div>
+    """, unsafe_allow_html=True)
+    st.markdown(f"This oil has **{remaining:.0f} hours** left of useful life.")
