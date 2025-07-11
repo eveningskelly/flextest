@@ -62,15 +62,15 @@ with logo_col3:
 st.markdown("<h1>FLEX REPORT</h1>", unsafe_allow_html=True)
 
 # Oil dropdown (unique names only)
-oil_names = sorted(list(set([
-    "Kluber Summit SH 32", "Castrol SN 46", "Total Preslia EVO 32", "Chevron GST Premium XL32 (2)",
-    "Total Preslia GT", "Chevron GST 32", "Chevron GST Advantage EP 32", "Mobil DTE 732",
-    "Mobil SHC 824", "Mobil DTE 932 GT", "Mobil SHC 832 Ultra", "Shell Turbo S4X32",
-    "Shell Turbo T 32", "Infinity TO32", "Mobil DTE 732 Geared", "Castrol XEP 46",
-    "Petromin Turbo 46", "Jentram Syn 46", "Shell Turbo S4 GX 32", "Turboflo XL",
-    "Turboflo R&O", "Turboflo LV", "Turboflo HTS", "Fuchs Eterna 46", "Mobil DTE 832",
-    "Repsol Turbo Aries Plus"
-]))
+ oil_names = sorted(list(set([
+     "Kluber Summit SH 32", "Castrol SN 46", "Total Preslia EVO 32", "Chevron GST Premium XL32 (2)",
+     "Total Preslia GT", "Chevron GST 32", "Chevron GST Advantage EP 32", "Mobil DTE 732",
+     "Mobil SHC 824", "Mobil DTE 932 GT", "Mobil SHC 832 Ultra", "Shell Turbo S4X32",
+     "Shell Turbo T 32", "Infinity TO32", "Mobil DTE 732 Geared", "Castrol XEP 46",
+     "Petromin Turbo 46", "Jentram Syn 46", "Shell Turbo S4 GX 32", "Turboflo XL",
+     "Turboflo R&O", "Turboflo LV", "Turboflo HTS", "Fuchs Eterna 46", "Mobil DTE 832",
+     "Repsol Turbo Aries Plus"
+ ])))
 
 # Per-oil formula dictionaries
 rpvot_funcs = {
@@ -136,19 +136,15 @@ def find_remaining_life(h0, r_fn, a_fn):
         a = a_fn(h) if a_fn else r
         return (r + a) / 2
 
-    # Already past end of useful life?
     if avg_pct(h0) <= 25:
         return 0
 
-    low, high = h0, h0 + 1
-    max_limit = 1e6
-    # Expand until average <= 25 or limit reached
-    while avg_pct(high) > 25 and high < max_limit:
+    low, high = h0, h0 * 2 + 1
+    while avg_pct(high) > 25:
         high *= 2
-    if avg_pct(high) > 25:
-        return None
+        if high > 1e6:
+            return None
 
-    # Binary search
     for _ in range(50):
         mid = (low + high) / 2
         if avg_pct(mid) > 25:
@@ -157,87 +153,45 @@ def find_remaining_life(h0, r_fn, a_fn):
             high = mid
     return high - h0
 
-# Input fields
-col1, col2, col3, col4, col5 = st.columns(5)
-with col1:
-    hours_in_use = st.number_input("Hours in Use", min_value=0)
-    rpvot_pct = None
-    aminic_pct = None
-with col2:
+# Inputs
+oil_col, hours_col = st.columns(2)
+with oil_col:
     selected_oil = st.selectbox("Oil Type", oil_names)
-with col3:
-    decon_added = st.selectbox("DECON Added", ["Yes", "No"])
-with col4:
-    application = st.selectbox("Application", [
-        "Large Gas Turbine", "Small Gas Turbine",
-        "Large Steam Turbine", "Small Steam Turbine"
-    ])
-with col5:
-    delta_e = st.number_input("MPC ΔE", min_value=0.0, max_value=100.0)
+with hours_col:
+    hours_in_use = st.number_input("Hours in Use", min_value=0)
 
 # Analyze button
 if st.button("Analyze"):
     st.markdown("---")
     st.subheader("Results")
 
-    # Calculate current RPVOT% and Aminic%
-    rpvot_pct = rpvot_funcs[selected_oil](hours_in_use)
-    aminic_pct = aminic_funcs.get(selected_oil, lambda h: rpvot_pct)(hours_in_use)
+    # Compute current RPVOT% and Aminic%
+    r_val = rpvot_funcs[selected_oil](hours_in_use)
+    a_val = aminic_funcs.get(selected_oil, lambda h: r_val)(hours_in_use)
 
-    # Compute remaining useful life
-    extra = find_remaining_life(
-        hours_in_use,
-        rpvot_funcs[selected_oil],
-        aminic_funcs.get(selected_oil)
-    )
-    remaining_life = extra if extra is not None else 0
-    total_life = hours_in_use + remaining_life
+    # Compute remaining life
+    extra_hours = find_remaining_life(hours_in_use, rpvot_funcs[selected_oil], aminic_funcs.get(selected_oil))
+    rem_life = extra_hours if extra_hours is not None else 0
+    total_life = hours_in_use + rem_life
 
-    # Percentages for slider rendering
-    usage_pct = (hours_in_use / total_life) * 100 if total_life>0 else 100
-    threshold_pct = 100
-    deposit_pct = min(delta_e, 100)
+    # Slider percentages
+    used_pct = (hours_in_use / total_life) * 100 if total_life else 100
+    deposit_pct = min(100, rem_life / total_life * 100 if total_life else 100)
 
-    life_col, dep_col = st.columns(2)
-    with life_col:
+    col1, col2 = st.columns(2)
+    with col1:
         st.markdown(f"""
-            <div style="
-                width: 100%; height: 20px;
-                background: linear-gradient(to right, green 0%, yellow 50%, red 100%);
-                border-radius: 10px; position: relative; margin-bottom: 4px;
-            ">
-                <div style="
-                    position: absolute; left: 0;
-                    width: {usage_pct}%; height: 20px;
-                    background: rgba(0,0,0,0.3);
-                    border-radius: 10px;
-                "></div>
-                <div style="
-                    position: absolute; left: {threshold_pct}%;
-                    width: 2px; height: 20px;
-                    background: red;
-                "></div>
+            <div style="width:100%;height:20px;background:linear-gradient(to right,green, yellow, red);border-radius:10px;position:relative;">
+                <div style="position:absolute;left:0;width:{used_pct}%;height:20px;background:rgba(0,0,0,0.3);border-radius:10px;"></div>
+                <div style="position:absolute;left:100%;width:2px;height:20px;background:red;"></div>
             </div>
         """, unsafe_allow_html=True)
-        st.markdown(f"This oil has **{remaining_life:.0f} hours** left of useful life.")
-    with dep_col:
+        st.markdown(f"This oil has **{rem_life:.0f} hours** left of useful life.")
+    with col2:
         st.markdown(f"""
-            <div style="
-                width: 100%; height: 20px;
-                background: linear-gradient(to right, green 0%, yellow 50%, red 100%);
-                border-radius: 10px; position: relative; margin-bottom: 4px;
-            ">
-                <div style="
-                    position: absolute; left: 0;
-                    width: {deposit_pct}%; height: 20px;
-                    background: rgba(0,0,0,0.3);
-                    border-radius: 10px;
-                "></div>
-                <div style="
-                    position: absolute; left: {threshold_pct}%;
-                    width: 2px; height: 20px;
-                    background: red;
-                "></div>
+            <div style="width:100%;height:20px;background:linear-gradient(to right,green, yellow, red);border-radius:10px;position:relative;">
+                <div style="position:absolute;left:0;width:{deposit_pct}%;height:20px;background:rgba(0,0,0,0.3);border-radius:10px;"></div>
+                <div style="position:absolute;left:100%;width:2px;height:20px;background:red;"></div>
             </div>
         """, unsafe_allow_html=True)
-        st.markdown(f"This oil has a **{delta_e}%** level of deposits.")
+        st.markdown(f"This oil has RPVOT: **{r_val:.1f}%**, Aminic: **{a_val:.1f}%**.")
