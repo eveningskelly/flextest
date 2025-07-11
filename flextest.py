@@ -1,5 +1,6 @@
 import streamlit as st
 from PIL import Image
+import math
 
 # Page config
 st.set_page_config(
@@ -8,10 +9,10 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS: darker background, dark-blue text, larger logos, title moved up
+# Custom CSS: darker background, dark-blue text, green accents
 st.markdown("""
     <style>
-        /* Darker page background and text color override */
+        /* Background and text */
         [data-testid="stAppViewContainer"],
         [data-testid="stBlock"],
         [data-testid="stSidebar"],
@@ -20,25 +21,26 @@ st.markdown("""
             background-color: #e8e8e8 !important;
             color: #003366 !important;
         }
-        /* Ensure body text is dark blue */
-        body, .main, .css-1d391kg, .css-1dp5vir, .css-1v3fvcr {
+        body, .main {
+            background-color: #e8e8e8 !important;
             color: #003366 !important;
         }
-        /* Tweak headings */
         h1 {
             color: #003366 !important;
             margin-top: -20px !important;
             margin-bottom: 10px !important;
             font-family: 'Arial Narrow', sans-serif !important;
+            text-align: center !important;
+            font-size: 48px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 2px !important;
         }
-        /* Style input labels */
         label, .stTextInput label, .stSelectbox label, .stNumberInput label {
             color: #003366 !important;
             font-weight: 500 !important;
             font-family: 'Arial Narrow', sans-serif !important;
             text-transform: uppercase !important;
         }
-        /* Green accent on input boxes */
         .stSelectbox > div, .stTextInput > div, .stNumberInput > div {
             border-color: #00A651 !important;
         }
@@ -47,16 +49,16 @@ st.markdown("""
 
 # Load logos
 fluitec_logo = Image.open("fluitec_logo.png")
-flex_logo   = Image.open("flexlogo.png")
+flex_logo    = Image.open("flexlogo.png")
 
-# Display logos larger and title moved up
+# Display logos larger and centered
 logo_col1, logo_col2, logo_col3 = st.columns([1, 6, 1])
 with logo_col1:
     st.image(fluitec_logo, width=300)
 with logo_col3:
     st.image(flex_logo, width=300)
 
-# Page title
+# Title
 st.markdown("<h1>FLEX REPORT</h1>", unsafe_allow_html=True)
 
 # Oil dropdown (unique names only)
@@ -68,49 +70,135 @@ oil_names = sorted(list(set([
     "Petromin Turbo 46", "Jentram Syn 46", "Shell Turbo S4 GX 32", "Turboflo XL",
     "Turboflo R&O", "Turboflo LV", "Turboflo HTS", "Fuchs Eterna 46", "Mobil DTE 832",
     "Repsol Turbo Aries Plus"
-])))
+]))
+
+# Per-oil formula dictionaries
+rpvot_funcs = {
+    "Castrol SN 46": lambda h: max(100.79786 * math.exp(-0.00001996 * h), 0),
+    "Castrol XEP 46": lambda h: max(87.88136 * math.exp(-0.00075575 * h), 0),
+    "Chevron GST 32": lambda h: max(93.31351 * math.exp(-0.00000859 * h), 0),
+    "Chevron GST Advantage EP 32": lambda h: max(102.73982 * math.exp(-0.0002572 * h), 0),
+    "Chevron GST Premium XL32 (2)": lambda h: max(102.98036 * math.exp(-0.00034336 * h), 0),
+    "Fuchs Eterna 46": lambda h: max(93.06849 * math.exp(-0.00054818 * h), 0),
+    "Infinity TO32": lambda h: max(107.27841 * math.exp(-0.00039224 * h), 0),
+    "Jentram Syn 46": lambda h: max(102.00911 * math.exp(-0.00080471 * h), 0),
+    "Kluber Summit SH 32": lambda h: max(90.81009 * math.exp(-0.00044569 * h), 0),
+    "Mobil DTE 732": lambda h: max(108.81924 * math.exp(-0.00037696 * h), 0),
+    "Mobil DTE 732 Geared": lambda h: max(105.82153 * math.exp(-0.00024602 * h), 0),
+    "Mobil DTE 832": lambda h: max(97.47189 * math.exp(-0.0005471 * h), 0),
+    "Mobil DTE 932 GT": lambda h: max(90.54567 * math.exp(-0.00014641 * h), 0),
+    "Mobil SHC 824": lambda h: max(95.89441 * math.exp(-0.00009471 * h), 0),
+    "Mobil SHC 832 Ultra": lambda h: max(101.24346 * math.exp(-0.00016257 * h), 0),
+    "Petromin Turbo 46": lambda h: max(97.69654 * math.exp(-0.00064843 * h), 0),
+    "Repsol Turbo Aries Plus": lambda h: max(96.25161 * math.exp(-0.00040146 * h), 0),
+    "Shell Turbo S4 GX 32": lambda h: max(91.33195 * math.exp(-0.00025352 * h), 0),
+    "Shell Turbo S4X32": lambda h: max(91.06849 * math.exp(-0.0002014 * h), 0),
+    "Shell Turbo T 32": lambda h: max(104.55415 * math.exp(-0.00049444 * h), 0),
+    "Total Preslia EVO 32": lambda h: max(107.82388 * math.exp(-0.000412 * h), 0),
+    "Total Preslia GT": lambda h: max(96.33903, 0),
+    "Turboflo HTS": lambda h: max(101.64971 * math.exp(-0.00028872 * h), 0),
+    "Turboflo LV": lambda h: max(100.67579 * math.exp(-0.00067692 * h), 0),
+    "Turboflo R&O": lambda h: max(91.84005 * math.exp(-0.00106696 * h), 0),
+    "Turboflo XL": lambda h: max(109.69558 * math.exp(-0.00017808 * h), 0)
+}
+aminic_funcs = {
+    "Castrol SN 46": lambda h: max(105.08543 * math.exp(-0.0003269 * h), 0),
+    "Castrol XEP 46": lambda h: max(97.02338 * math.exp(-0.00078991 * h), 0),
+    "Chevron GST Advantage EP 32": lambda h: max(108.42032 * math.exp(-0.00037097 * h), 0),
+    "Chevron GST Premium XL32 (2)": lambda h: max(94.28367 * math.exp(-0.00072707 * h), 0),
+    "Fuchs Eterna 46": lambda h: max(105.8678 * math.exp(-0.00048179 * h), 0),
+    "Infinity TO32": lambda h: max(104.32032 * math.exp(-0.00027361 * h), 0),
+    "Jentram Syn 46": lambda h: max(106.62101 * math.exp(-0.00047731 * h), 0),
+    "Kluber Summit SH 32": lambda h: max(102.31298 * math.exp(-0.0002616 * h), 0),
+    "Mobil DTE 732": lambda h: max(107.40819 * math.exp(-0.00091084 * h), 0),
+    "Mobil DTE 732 Geared": lambda h: max(107.72234 * math.exp(-0.0004424 * h), 0),
+    "Mobil DTE 832": lambda h: max(102.39014 * math.exp(-0.00025732 * h), 0),
+    "Mobil DTE 932 GT": lambda h: max(108.19652 * math.exp(-0.000536 * h), 0),
+    "Mobil SHC 824": lambda h: max(99.96255 * math.exp(-0.00009784 * h), 0),
+    "Mobil SHC 832 Ultra": lambda h: max(99.76654 * math.exp(-0.00021702 * h), 0),
+    "Petromin Turbo 46": lambda h: max(102.68657 * math.exp(-0.00043107 * h), 0),
+    "Repsol Turbo Aries Plus": lambda h: max(103.23661 * math.exp(-0.00025331 * h), 0),
+    "Shell Turbo S4 GX 32": lambda h: max(108.37683 * math.exp(-0.00048742 * h), 0),
+    "Shell Turbo S4X32": lambda h: max(95.59583 * math.exp(-0.00056219 * h), 0),
+    "Shell Turbo T 32": lambda h: max(111.29316 * math.exp(-0.00062519 * h), 0),
+    "Total Preslia EVO 32": lambda h: max(98.24761 * math.exp(-0.0000581 * h), 0),
+    "Total Preslia GT": lambda h: max(101.12, 0),
+    "Turboflo HTS": lambda h: max(104.32293 * math.exp(-0.00067565 * h), 0),
+    "Turboflo LV": lambda h: max(106.73885 * math.exp(-0.00108233 * h), 0),
+    "Turboflo R&O": lambda h: max(91.93054 * math.exp(-0.00058039 * h), 0),
+    "Turboflo XL": lambda h: max(99.41411 * math.exp(-0.00017067 * h), 0)
+}
+
+# Helper to find remaining life until avg(RPVOT%, Aminic%) reaches 25%
+def find_remaining_life(h0, r_fn, a_fn):
+    def avg_pct(h):
+        r = r_fn(h)
+        a = a_fn(h) if a_fn else r
+        return (r + a) / 2
+
+    # Already past end of useful life?
+    if avg_pct(h0) <= 25:
+        return 0
+
+    low, high = h0, h0 + 1
+    max_limit = 1e6
+    # Expand until average <= 25 or limit reached
+    while avg_pct(high) > 25 and high < max_limit:
+        high *= 2
+    if avg_pct(high) > 25:
+        return None
+
+    # Binary search
+    for _ in range(50):
+        mid = (low + high) / 2
+        if avg_pct(mid) > 25:
+            low = mid
+        else:
+            high = mid
+    return high - h0
 
 # Input fields
 col1, col2, col3, col4, col5 = st.columns(5)
 with col1:
-    rpvot       = st.number_input("RPVOT (%)",     min_value=0.0, max_value=200.0)
-    aminic      = st.number_input("% Aminic",      min_value=0.0, max_value=100.0)
-    phenolic    = st.number_input("% Phenolic",    min_value=0.0, max_value=100.0)
-    delta_e     = st.number_input("MPC ΔE",        min_value=0.0, max_value=100.0)
+    hours_in_use = st.number_input("Hours in Use", min_value=0)
+    rpvot_pct = None
+    aminic_pct = None
 with col2:
     selected_oil = st.selectbox("Oil Type", oil_names)
 with col3:
     decon_added = st.selectbox("DECON Added", ["Yes", "No"])
 with col4:
-    hours_in_use = st.number_input("Hours in Use", min_value=0)
-with col5:
     application = st.selectbox("Application", [
         "Large Gas Turbine", "Small Gas Turbine",
         "Large Steam Turbine", "Small Steam Turbine"
     ])
+with col5:
+    delta_e = st.number_input("MPC ΔE", min_value=0.0, max_value=100.0)
 
-# Placeholder for future results section
-st.markdown("""---
-*Results section coming soon.*
-""")
-
-# Analyze button and results
+# Analyze button
 if st.button("Analyze"):
     st.markdown("---")
     st.subheader("Results")
 
-    # Placeholder model output
-    estimated_total_life = 20000
-    remaining_life = max(estimated_total_life - hours_in_use, 0)
+    # Calculate current RPVOT% and Aminic%
+    rpvot_pct = rpvot_funcs[selected_oil](hours_in_use)
+    aminic_pct = aminic_funcs.get(selected_oil, lambda h: rpvot_pct)(hours_in_use)
 
-    # Percentages for rendering
-    usage_pct     = (hours_in_use / estimated_total_life) * 100
-    threshold_pct = 75  # 75% marker
-    deposit_pct   = min(delta_e, 100)
+    # Compute remaining useful life
+    extra = find_remaining_life(
+        hours_in_use,
+        rpvot_funcs[selected_oil],
+        aminic_funcs.get(selected_oil)
+    )
+    remaining_life = extra if extra is not None else 0
+    total_life = hours_in_use + remaining_life
 
-    # Two hot-dog bars side by side
+    # Percentages for slider rendering
+    usage_pct = (hours_in_use / total_life) * 100 if total_life>0 else 100
+    threshold_pct = 100
+    deposit_pct = min(delta_e, 100)
+
     life_col, dep_col = st.columns(2)
-
     with life_col:
         st.markdown(f"""
             <div style="
@@ -131,8 +219,7 @@ if st.button("Analyze"):
                 "></div>
             </div>
         """, unsafe_allow_html=True)
-        st.markdown(f"This oil has **{remaining_life:,} hours** left of useful life.")
-
+        st.markdown(f"This oil has **{remaining_life:.0f} hours** left of useful life.")
     with dep_col:
         st.markdown(f"""
             <div style="
