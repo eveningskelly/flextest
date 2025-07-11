@@ -51,7 +51,7 @@ st.markdown("""
 fluitec_logo = Image.open("fluitec_logo.png")
 flex_logo    = Image.open("flexlogo.png")
 
-# Display logos larger and centered
+# Display logos
 logo_col1, logo_col2, logo_col3 = st.columns([1, 6, 1])
 with logo_col1:
     st.image(fluitec_logo, width=300)
@@ -61,16 +61,16 @@ with logo_col3:
 # Title
 st.markdown("<h1>FLEX REPORT</h1>", unsafe_allow_html=True)
 
-# Oil dropdown (unique names only)
- oil_names = sorted(list(set([
-     "Kluber Summit SH 32", "Castrol SN 46", "Total Preslia EVO 32", "Chevron GST Premium XL32 (2)",
-     "Total Preslia GT", "Chevron GST 32", "Chevron GST Advantage EP 32", "Mobil DTE 732",
-     "Mobil SHC 824", "Mobil DTE 932 GT", "Mobil SHC 832 Ultra", "Shell Turbo S4X32",
-     "Shell Turbo T 32", "Infinity TO32", "Mobil DTE 732 Geared", "Castrol XEP 46",
-     "Petromin Turbo 46", "Jentram Syn 46", "Shell Turbo S4 GX 32", "Turboflo XL",
-     "Turboflo R&O", "Turboflo LV", "Turboflo HTS", "Fuchs Eterna 46", "Mobil DTE 832",
-     "Repsol Turbo Aries Plus"
- ])))
+# Oil dropdown options
+oil_names = sorted(list(set([
+    "Kluber Summit SH 32", "Castrol SN 46", "Total Preslia EVO 32", "Chevron GST Premium XL32 (2)",
+    "Total Preslia GT", "Chevron GST 32", "Chevron GST Advantage EP 32", "Mobil DTE 732",
+    "Mobil SHC 824", "Mobil DTE 932 GT", "Mobil SHC 832 Ultra", "Shell Turbo S4X32",
+    "Shell Turbo T 32", "Infinity TO32", "Mobil DTE 732 Geared", "Castrol XEP 46",
+    "Petromin Turbo 46", "Jentram Syn 46", "Shell Turbo S4 GX 32", "Turboflo XL",
+    "Turboflo R&O", "Turboflo LV", "Turboflo HTS", "Fuchs Eterna 46", "Mobil DTE 832",
+    "Repsol Turbo Aries Plus"
+])))
 
 # Per-oil formula dictionaries
 rpvot_funcs = {
@@ -95,12 +95,13 @@ rpvot_funcs = {
     "Shell Turbo S4X32": lambda h: max(91.06849 * math.exp(-0.0002014 * h), 0),
     "Shell Turbo T 32": lambda h: max(104.55415 * math.exp(-0.00049444 * h), 0),
     "Total Preslia EVO 32": lambda h: max(107.82388 * math.exp(-0.000412 * h), 0),
-    "Total Preslia GT": lambda h: max(96.33903, 0),
+    "Total Preslia GT": lambda h: 96.33903,
     "Turboflo HTS": lambda h: max(101.64971 * math.exp(-0.00028872 * h), 0),
     "Turboflo LV": lambda h: max(100.67579 * math.exp(-0.00067692 * h), 0),
     "Turboflo R&O": lambda h: max(91.84005 * math.exp(-0.00106696 * h), 0),
-    "Turboflo XL": lambda h: max(109.69558 * math.exp(-0.00017808 * h), 0)
+    "Turboflo XL": lambda h: max(109.69558 * math.exp(-0.00017808 * h), 0),
 }
+
 aminic_funcs = {
     "Castrol SN 46": lambda h: max(105.08543 * math.exp(-0.0003269 * h), 0),
     "Castrol XEP 46": lambda h: max(97.02338 * math.exp(-0.00078991 * h), 0),
@@ -122,14 +123,14 @@ aminic_funcs = {
     "Shell Turbo S4X32": lambda h: max(95.59583 * math.exp(-0.00056219 * h), 0),
     "Shell Turbo T 32": lambda h: max(111.29316 * math.exp(-0.00062519 * h), 0),
     "Total Preslia EVO 32": lambda h: max(98.24761 * math.exp(-0.0000581 * h), 0),
-    "Total Preslia GT": lambda h: max(101.12, 0),
+    "Total Preslia GT": lambda h: 101.12,
     "Turboflo HTS": lambda h: max(104.32293 * math.exp(-0.00067565 * h), 0),
     "Turboflo LV": lambda h: max(106.73885 * math.exp(-0.00108233 * h), 0),
     "Turboflo R&O": lambda h: max(91.93054 * math.exp(-0.00058039 * h), 0),
-    "Turboflo XL": lambda h: max(99.41411 * math.exp(-0.00017067 * h), 0)
+    "Turboflo XL": lambda h: max(99.41411 * math.exp(-0.00017067 * h), 0),
 }
 
-# Helper to find remaining life until avg(RPVOT%, Aminic%) reaches 25%
+# Solver
 def find_remaining_life(h0, r_fn, a_fn):
     def avg_pct(h):
         r = r_fn(h)
@@ -139,7 +140,7 @@ def find_remaining_life(h0, r_fn, a_fn):
     if avg_pct(h0) <= 25:
         return 0
 
-    low, high = h0, h0 * 2 + 1
+    low, high = h0, h0 + 1
     while avg_pct(high) > 25:
         high *= 2
         if high > 1e6:
@@ -154,44 +155,37 @@ def find_remaining_life(h0, r_fn, a_fn):
     return high - h0
 
 # Inputs
-oil_col, hours_col = st.columns(2)
-with oil_col:
+col1, col2 = st.columns(2)
+with col1:
     selected_oil = st.selectbox("Oil Type", oil_names)
-with hours_col:
+with col2:
     hours_in_use = st.number_input("Hours in Use", min_value=0)
 
-# Analyze button
+# Analyze
 if st.button("Analyze"):
     st.markdown("---")
     st.subheader("Results")
 
-    # Compute current RPVOT% and Aminic%
-    r_val = rpvot_funcs[selected_oil](hours_in_use)
-    a_val = aminic_funcs.get(selected_oil, lambda h: r_val)(hours_in_use)
+    r_fn = rpvot_funcs[selected_oil]
+    a_fn = aminic_funcs.get(selected_oil, None)
 
-    # Compute remaining life
-    extra_hours = find_remaining_life(hours_in_use, rpvot_funcs[selected_oil], aminic_funcs.get(selected_oil))
-    rem_life = extra_hours if extra_hours is not None else 0
-    total_life = hours_in_use + rem_life
+    r_val = r_fn(hours_in_use)
+    a_val = a_fn(hours_in_use) if a_fn else r_val
 
-    # Slider percentages
-    used_pct = (hours_in_use / total_life) * 100 if total_life else 100
-    deposit_pct = min(100, rem_life / total_life * 100 if total_life else 100)
+    remaining = find_remaining_life(hours_in_use, r_fn, a_fn)
+    remaining = remaining if remaining is not None else 0
+    total = hours_in_use + remaining
 
-    col1, col2 = st.columns(2)
-    with col1:
+    usage_pct = (hours_in_use / total) * 100 if total else 100
+
+    col_a, col_b = st.columns(2)
+    with col_a:
         st.markdown(f"""
-            <div style="width:100%;height:20px;background:linear-gradient(to right,green, yellow, red);border-radius:10px;position:relative;">
-                <div style="position:absolute;left:0;width:{used_pct}%;height:20px;background:rgba(0,0,0,0.3);border-radius:10px;"></div>
+            <div style="width:100%;height:20px;background:linear-gradient(to right, green, yellow, red);border-radius:10px;position:relative;">
+                <div style="position:absolute;left:0;width:{usage_pct}%;height:20px;background:rgba(0,0,0,0.3);border-radius:10px;"></div>
                 <div style="position:absolute;left:100%;width:2px;height:20px;background:red;"></div>
             </div>
         """, unsafe_allow_html=True)
-        st.markdown(f"This oil has **{rem_life:.0f} hours** left of useful life.")
-    with col2:
-        st.markdown(f"""
-            <div style="width:100%;height:20px;background:linear-gradient(to right,green, yellow, red);border-radius:10px;position:relative;">
-                <div style="position:absolute;left:0;width:{deposit_pct}%;height:20px;background:rgba(0,0,0,0.3);border-radius:10px;"></div>
-                <div style="position:absolute;left:100%;width:2px;height:20px;background:red;"></div>
-            </div>
-        """, unsafe_allow_html=True)
-        st.markdown(f"This oil has RPVOT: **{r_val:.1f}%**, Aminic: **{a_val:.1f}%**.")
+        st.markdown(f"This oil has **{remaining:.0f} hours** left of useful life.")
+    with col_b:
+        st.markdown(f"RPVOT: **{r_val:.1f}%**, Aminic: **{a_val:.1f}%**")
