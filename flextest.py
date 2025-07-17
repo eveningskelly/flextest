@@ -149,7 +149,7 @@ with col4:
 
 with col5:
     app_type = st.selectbox("Application Type", ["Gas Turbine", "Steam Turbine"])
-    model_brand = st.selectbox("Model Brand", list(model_options.keys()))
+    model_brand = st.selectbox("OEM", list(model_options.keys()))
     model_name = st.selectbox("Model", list(model_options[model_brand][app_type].keys()))
     tsi = model_options[model_brand][app_type][model_name]
 
