@@ -41,7 +41,7 @@ st.markdown("""
         .custom-title {
             color: #002f5f;  /* dark blue */
             font-size: 30px;  /* smaller than 48px */
-            font-weight: 500;
+            font-weight: 200;
             text-align: center;
             font-family: 'Arial Narrow', sans-serif;
             text-transform: uppercase;
@@ -53,11 +53,11 @@ st.markdown("""
 
 col_logo1, col_logo2, col_logo3 = st.columns([1, 6, 1])
 with col_logo1:
-    st.image("flexlogo.png", width=200)
+    st.image("flexlogo.png", width=400)
 with col_logo2:
     st.markdown('<h1 class="custom-title">Flex Analysis Report</h1>', unsafe_allow_html=True)
 with col_logo3:
-    st.image("fluitec_logo.png", width=140)
+    st.image("fluitec_logo.png", width=240)
 
     
 
