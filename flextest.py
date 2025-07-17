@@ -39,8 +39,8 @@ st.markdown("""
 st.markdown("""
     <style>
         .custom-title {
-            color: #002f5f;  /* dark blue */
-            font-size: 30px;  /* smaller than 48px */
+            color: #002f5f !important;  /* dark blue override */
+            font-size: 20px;
             font-weight: 200;
             text-align: center;
             font-family: 'Arial Narrow', sans-serif;
