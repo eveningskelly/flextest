@@ -31,43 +31,47 @@ st.markdown("""
             font-family: 'Arial Narrow', sans-serif;
             text-transform: uppercase;
         }
-        input[type=number]::-webkit-outer-spin-button,
-        input[type=number]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
-        .result-header {
-            color: #002f5f;
+    </style>
+""", unsafe_allow_html=True)
+
+
+# --- LOGOS ---
+st.markdown("""
+    <style>
+        .custom-title {
+            color: #002f5f !important;  /* dark blue override */
+            font-size: 20px;
+            font-weight: 200;
+            text-align: center;
             font-family: 'Arial Narrow', sans-serif;
-            font-size: 18px;
-            margin-top: 20px;
-        }
-        .result-hours {
-            color: #002f5f;
-            font-family: 'Arial Black', sans-serif;
-            font-size: 36px;
-            margin-top: -10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: -30px;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# --- LOGOS ---
+from PIL import Image
+
+# --- Open and upscale manually ---
 logo1 = Image.open("flexlogo.png")
 logo1 = logo1.resize((400, int(logo1.height * (400 / logo1.width))))  # Resize proportionally
 
 logo2 = Image.open("fluitec_logo.png")
 logo2 = logo2.resize((240, int(logo2.height * (240 / logo2.width))))
 
+# --- Layout ---
 col_logo1, col_logo2, col_logo3 = st.columns([1, 6, 1])
+
 with col_logo1:
     st.image(logo1)
+
 with col_logo2:
     st.markdown('<h1 class="custom-title">Flex Analysis Report</h1>', unsafe_allow_html=True)
+
 with col_logo3:
     st.image(logo2)
+
 
 # --- MODEL OPTIONS + TSI VALUES ---
 model_options = {
@@ -129,10 +133,10 @@ oil_constants = {
 col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
-    rpvot_input = st.number_input("RPVOT (%)", value=0.0, step=0.1, format="%.2f")
-    aminic_input = st.number_input("% Aminic", value=0.0, step=0.1, format="%.2f")
-    phenolic = st.number_input("% Phenolic", value=0.0, step=0.1, format="%.2f")
-    delta_e = st.number_input("MPC ΔE", value=0.0, step=0.1, format="%.2f")
+    rpvot_input = st.number_input("RPVOT (%)", min_value=0.0, max_value=200.0)
+    aminic_input = st.number_input("% Aminic", min_value=0.0, max_value=100.0)
+    phenolic = st.number_input("% Phenolic", min_value=0.0, max_value=100.0)
+    delta_e = st.number_input("MPC ΔE", min_value=0.0, max_value=100.0)
 
 with col2:
     selected_oil = st.selectbox("Oil Type", sorted(oil_constants.keys()))
@@ -155,6 +159,8 @@ if st.button("Analyze"):
     st.subheader("Results")
 
     k_r, k_a = oil_constants[selected_oil]
+
+    # Adjust constants
     factor = math.exp((90000 / 8.314) * (1 / (273.15 + 55) - 1 / (273.15 + 120)))
     adjusted_k_r = k_r * tsi / factor
     adjusted_k_a = k_a * tsi / factor
@@ -175,6 +181,7 @@ if st.button("Analyze"):
     total_hours = hours_in_use + rul_avg
     usage_pct = (hours_in_use / total_hours) * 100 if total_hours > 0 else 100
 
+        # --- RESULT BAR ---
     st.markdown(f"""
         <div style="width:100%;height:20px;background:linear-gradient(to right, green, yellow, red);border-radius:10px;position:relative;">
             <div style="position:absolute;left:0;width:{usage_pct:.2f}%;height:20px;background:rgba(0,0,0,0.3);border-radius:10px;"></div>
@@ -182,5 +189,7 @@ if st.button("Analyze"):
         </div>
     """, unsafe_allow_html=True)
 
-    st.markdown(f"<div class='result-header'>Your turbine model, oil type, and present oil condition have been analyzed to estimate the remaining useful oil life:</div>", unsafe_allow_html=True)
-    st.markdown(f"<div class='result-hours'>{rul_avg:.0f} hours</div>", unsafe_allow_html=True)
+    # --- NEW OUTPUT TEXT ---
+    st.markdown(f"**Your turbine model, oil type, and present oil condition have been analyzed to estimate the remaining useful oil life: {rul_avg:.0f} hours.**")
+
+    
