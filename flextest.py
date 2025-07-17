@@ -151,14 +151,14 @@ if st.button("Analyze"):
     total_hours = hours_in_use + rul_avg
     usage_pct = (hours_in_use / total_hours) * 100 if total_hours > 0 else 100
 
-    # --- RESULT BAR ---
-st.markdown(f"""
-    <div style="width:100%;height:20px;background:linear-gradient(to right, green, yellow, red);border-radius:10px;position:relative;">
-        <div style="position:absolute;left:0;width:{usage_pct:.2f}%;height:20px;background:rgba(0,0,0,0.3);border-radius:10px;"></div>
-        <div style="position:absolute;left:100%;width:2px;height:20px;background:red;"></div>
-    </div>
-""", unsafe_allow_html=True)
+        # --- RESULT BAR ---
+    st.markdown(f"""
+        <div style="width:100%;height:20px;background:linear-gradient(to right, green, yellow, red);border-radius:10px;position:relative;">
+            <div style="position:absolute;left:0;width:{usage_pct:.2f}%;height:20px;background:rgba(0,0,0,0.3);border-radius:10px;"></div>
+            <div style="position:absolute;left:100%;width:2px;height:20px;background:red;"></div>
+        </div>
+    """, unsafe_allow_html=True)
 
-# --- NEW OUTPUT TEXT ---
-st.markdown(f"**Your turbine model, oil type, and present oil condition have been analyzed to estimate the remaining useful oil life: {rul_avg:.0f} hours.**")
+    # --- NEW OUTPUT TEXT ---
+    st.markdown(f"**Your turbine model, oil type, and present oil condition have been analyzed to estimate the remaining useful oil life: {rul_avg:.0f} hours.**")
 
