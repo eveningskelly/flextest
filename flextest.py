@@ -34,30 +34,18 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+
+
 # --- LOGOS ---
-st.markdown("""
-    <style>
-        .logo-img {
-            margin-top: -40px;
-            vertical-align: top;
-        }
-        .header-title {
-            margin-top: -40px;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
 col_logo1, col_logo2, col_logo3 = st.columns([1, 6, 1])
-
 with col_logo1:
-    st.markdown('<img src="flexlogo.png" class="logo-img" width="180">', unsafe_allow_html=True)
-
+    st.image("flexlogo.png", width=160)
 with col_logo2:
-    st.markdown('<h1 class="header-title">Flex Analysis Report</h1>', unsafe_allow_html=True)
-
+    st.markdown("<h1>Flex Analysis Report</h1>", unsafe_allow_html=True)
 with col_logo3:
-    st.markdown('<img src="fluitec_logo.png" class="logo-img" width="180">', unsafe_allow_html=True)
+    st.image("fluitec_logo.png", width=140)
 
+    
 
 # --- MODEL OPTIONS + TSI VALUES ---
 model_options = {
