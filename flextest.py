@@ -40,8 +40,8 @@ st.markdown("""
     <style>
         .custom-title {
             color: #003366;  /* dark blue */
-            font-size: 36px;  /* smaller than 48px */
-            font-weight: 600;
+            font-size: 30px;  /* smaller than 48px */
+            font-weight: 500;
             text-align: center;
             font-family: 'Arial Narrow', sans-serif;
             text-transform: uppercase;
