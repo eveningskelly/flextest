@@ -51,15 +51,27 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+from PIL import Image
+
+# --- Open and upscale manually ---
+logo1 = Image.open("flexlogo.png")
+logo1 = logo1.resize((400, int(logo1.height * (400 / logo1.width))))  # Resize proportionally
+
+logo2 = Image.open("fluitec_logo.png")
+logo2 = logo2.resize((240, int(logo2.height * (240 / logo2.width))))
+
+# --- Layout ---
 col_logo1, col_logo2, col_logo3 = st.columns([1, 6, 1])
+
 with col_logo1:
-    st.markdown('<img src="flexlogo.png" style="width:400px;">', unsafe_allow_html=True)
+    st.image(logo1)
+
 with col_logo2:
     st.markdown('<h1 class="custom-title">Flex Analysis Report</h1>', unsafe_allow_html=True)
-with col_logo3:
-    st.markdown('<img src="fluitec_logo.png" style="width:240px;">', unsafe_allow_html=True)
 
-    
+with col_logo3:
+    st.image(logo2)
+
 
 # --- MODEL OPTIONS + TSI VALUES ---
 model_options = {
