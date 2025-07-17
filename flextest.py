@@ -190,6 +190,7 @@ if st.button("Analyze"):
     """, unsafe_allow_html=True)
 
     # --- NEW OUTPUT TEXT ---
-    st.markdown(f"**Your turbine model, oil type, and present oil condition have been analyzed to estimate the remaining useful oil life: {rul_avg:.0f} hours.**")
+    weeks_remaining = rul_avg / 168
+    st.markdown(f"**Your turbine model, oil type, and present oil condition have been analyzed to estimate the remaining useful oil life: {rul_avg:.0f} hours ({weeks_remaining:.1f} weeks).**")
 
     
